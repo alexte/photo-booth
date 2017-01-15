@@ -1,0 +1,13 @@
+{
+  "name": "photo-booth",
+  "description": "photo booth software",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "4.x",
+    "cookie-parser": "1.x",
+    "body-parser": "1.x",
+    "uid-safe": "1.x",
+    "font-awesome": "4.x"
+  }
+}
