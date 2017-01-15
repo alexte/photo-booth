@@ -3,10 +3,24 @@
 // by: Alexander Terczka <alex@mail.at>
 //--------------------------------------------------
 
+var fs = require('fs');
 var express = require('express');
+var slideshowdir = "images/slideshow/";
+
 var app = express();
 
 var port = 8082;
+
+var slides=[];
+
+function read_slideshow_dir(callback)
+{
+    fs.readdir(slideshowdir,function (err,files) {
+	if (err) { throw new Error(err); }
+	slides=files;
+	callback();
+    });
+}
 
 //
 // ----  API URLs
@@ -18,8 +32,7 @@ var port = 8082;
     });
 
     app.get("/images.json",function(req,res) {
-        // TODO: send images list to browser
-        res.send("images.json");
+        res.send(slides);
     });
 
     app.get("/new.images.json",function(req,res) {
@@ -41,8 +54,17 @@ var port = 8082;
     });
 
     app.use(express.static('htdocs'));
+    app.use("/images",express.static('images/slideshow/'));
+
+//
+// ---- Startup
+//
+read_slideshow_dir(run);
 
 // 
 // ---- GO!
 // 
-app.listen(port, function () { console.log("Photo-booth service listening on port "+port+"!"); });
+function run()
+{
+    app.listen(port, function () { console.log("Photo-booth service listening on port "+port+"!"); });
+}
