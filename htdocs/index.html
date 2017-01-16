@@ -8,23 +8,24 @@
 	        font-family: sans-serif; font-size: 18pt; 
 		margin:0; padding:0;
              }
-	#imagediv { position:absolute; top:0; bottom:0; left:0; right:0; }
-	.slides { display:block; position:absolute; margin-right:auto; margin-left:auto;
-		  right:0; left:0; }
+	#imagediv { position:absolute; top:0; bottom:0; left:0; right:0; overflow:hidden; }
+	.slides { display:block; position:absolute; min-width:100%; min-height:100%; }
 	#info { display:none; position:absolute; left:1em; top:1em; font-size:48pt; }
     </style>
 
     <script src="jquery/jquery.min.js"></script>
     <script>
 	var slides=[];
-	var interval=5; //seconds
-	var fadetime=1000; // milli seconds
+	var interval=20000; // milli seconds
+	var fadetime=1500; // milli seconds
+	var loadwait=100; // milli seconds
 
 
 	var current_slide=-1;
         var current_slide_element=0;
         var this_el;
         var other_el;
+	var flip=false;
 
 	function showinfo(msg)
 	{
@@ -36,13 +37,19 @@
 	    if (slides.length<1) showinfo("No images found!"); // no images !
 
 	    current_slide=(current_slide+1)%slides.length;
-
-	    $(this_el).attr("src","images/"+slides[current_slide]);
-	    $(this_el).fadeIn(fadetime);
-	    $(other_el).fadeOut(fadetime);
 	    var tmp=this_el;
 	    this_el=other_el;
 	    other_el=tmp;
+
+	    this_el.attr("src","images/"+slides[current_slide]);
+	    setTimeout(function() {
+		    this_el.fadeIn(fadetime);
+		    var overflow=parseInt(this_el.css("height"))-parseInt($("#imagediv").css("height"));
+		    if (overflow>0) this_el.animate({top:-overflow+"px"},interval-fadetime-100);
+		    var overflow=parseInt(this_el.css("width"))-parseInt($("#imagediv").css("width"));
+		    if (overflow>0) this_el.animate({left:-overflow+"px"},interval-fadetime-100);
+		    other_el.fadeOut(fadetime,function () { other_el.css({top:0,left:0}); });
+	    },loadwait);
 	}
 
 	$(document).ready(function(){
@@ -52,7 +59,7 @@
 	    });
             this_el=$("#slide0");
             other_el=$("#slide1");
-	    setInterval(nextslide,interval*1000);
+	    flip=setInterval(nextslide,interval);
 	});
     </script>
 </head>
