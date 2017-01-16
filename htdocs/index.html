@@ -38,6 +38,7 @@
 	    if (slides.length<1) showinfo("No images found!"); // no images !
 
 	    current_slide=(current_slide+1)%slides.length;
+	    console.log("nextslide "+current_slide);
 	    var tmp=this_el;
 	    this_el=other_el;
 	    other_el=tmp;
@@ -45,10 +46,11 @@
 	    this_el.attr("src","images/"+slides[current_slide]);
 	    setTimeout(function() {
 		    this_el.fadeIn(fadetime);
-		    var overflow=parseInt(this_el.css("height"))-parseInt($("#imagediv").css("height"));
-		    if (overflow>0) this_el.animate({top:-overflow+"px"},interval-fadetime-100);
-		    var overflow=parseInt(this_el.css("width"))-parseInt($("#imagediv").css("width"));
-		    if (overflow>0) this_el.animate({left:-overflow+"px"},interval-fadetime-100);
+		    var overflow_y=parseInt(this_el.css("height"))-parseInt($("#imagediv").css("height"));
+		    var overflow_x=parseInt(this_el.css("width"))-parseInt($("#imagediv").css("width"));
+		    if (overflow_x<0) overflow_x=0;
+		    if (overflow_y<0) overflow_y=0;
+		    if (overflow_x+overflow_y>0) this_el.animate({left:-overflow_x+"px",top:-overflow_y+"px"},interval-fadetime-100);
 		    other_el.fadeOut(fadetime,function () { other_el.css({top:0,left:0}); });
 	    },loadwait);
 	}
@@ -95,7 +97,7 @@
  	    gps=navigator.getGamepads();
 	    if (gps.length<0) return; 
 	    gp=gps[0];
-	    if (!gp.connected) return; 
+	    if (!gp || !gp.connected) return; 
 	    
 	    if (gp.axes[0]!=0 || gp.axes[1]!=0 || gp.buttons[2].pressed || gp.buttons[3].pressed) 
 		// user moved stick or pressed other button;
