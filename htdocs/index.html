@@ -12,7 +12,7 @@
 	.slides { display:block; position:absolute; min-width:100%; min-height:100%; }
 	#info { display:none; position:absolute; left:1em; top:1em; font-size:48pt; font-size:15vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; }
 	#infodrawing { position:absolute; right:0; top:0; height:100%; display:none; }
-	#countdown { position:absolute; text-shadow:text-align:center; right:49%; width:2%; top:35%; font-size:20vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; display:none; }
+	#countdown { position:absolute; text-align:center; right:0; left:0; width:100%; top:35%; font-size:20vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; display:none; }
     </style>
 
     <script src="jquery/jquery.min.js"></script>
@@ -29,7 +29,7 @@
         var other_el;
 	var flip=false;
 
-	function showinfo(msg,autoaway)
+	function show_info(msg,autoaway)
 	{
 	    $("#info").text(msg).fadeIn(250);
 	    if (autoaway) setTimeout(function () { $("#info").fadeOut(1000); },parseInt(autoaway)*1000);
@@ -37,10 +37,9 @@
 
 	function nextslide()
 	{
-	    if (slides.length<1) showinfo("No images found!"); // no images !
+	    if (slides.length<1) show_info("No images found!"); // no images !
 
 	    current_slide=(current_slide+1)%slides.length;
-	    console.log("nextslide "+current_slide);
 	    var tmp=this_el;
 	    this_el=other_el;
 	    other_el=tmp;
@@ -85,10 +84,10 @@
 
 	function capture_countdown()
 	{
-		$("#countdown").text(5).fadeIn(600).fadeOut(600,function() { $(this).text(4); })
+		$("#countdown").text(4)
 		    .fadeIn(600).fadeOut(600,function() { $(this).text(3); })
 		    .fadeIn(600).fadeOut(600,function() { $(this).text(2); })
-		    .fadeIn(600).fadeOut(600,function() { $(this).text(1); })
+		    .fadeIn(600).fadeOut(600,function() { $(this).html("&#x1F603"); })
 		    .fadeIn(600).fadeOut(600,capture_photo);
 	}
 
