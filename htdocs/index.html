@@ -11,6 +11,7 @@
 	#imagediv { position:absolute; top:0; bottom:0; left:0; right:0; overflow:hidden; }
 	.slides { display:block; position:absolute; min-width:100%; min-height:100%; }
 	#info { display:none; position:absolute; left:1em; top:1em; font-size:48pt; }
+	#infodrawing { position:absolute; right:0; top:0; height:100%; display:none; }
     </style>
 
     <script src="jquery/jquery.min.js"></script>
@@ -52,6 +53,57 @@
 	    },loadwait);
 	}
 
+	info_drawing_open=false;
+
+	
+	function hide_info_drawing()
+	{
+	    $("#infodrawing").fadeOut(800,function() { info_drawing_open=false; });
+	}
+
+	function show_info_drawing()
+	{
+	    if (!info_drawing_open)
+	    {
+		info_drawing_open=true;
+		$("#infodrawing").fadeIn(800);
+		setTimeout(hide_info_drawing,5000);
+	    }
+	}
+
+	var webcam_active=false;
+	function toggle_webcam()
+	{
+		//TODO
+	}
+
+	function capture_photo()
+	{
+		//TODO
+	}
+
+	var pollgamepad_interval=false;
+	function pollgamepad()
+	{
+	    var gps;
+	    if (! "getGamepads" in navigator)
+	    {
+		clearInterval(pollgamepad_interval);
+		alert("Browser does not support Gamepads");
+		return;
+	    }
+ 	    gps=navigator.getGamepads();
+	    if (gps.length<0) return; 
+	    gp=gps[0];
+	    if (!gp.connected) return; 
+	    
+	    if (gp.axes[0]!=0 || gp.axes[1]!=0 || gp.buttons[2].pressed || gp.buttons[3].pressed) 
+		// user moved stick or pressed other button;
+		show_info_drawing();
+	    if (gp.buttons[0].pressed) toggle_webcam();
+	    if (gp.buttons[1].pressed) if (webcam_active) capture_photo() else show_info_drawing();
+	}
+
 	$(document).ready(function(){
 	    $.getJSON("images.json",function(data){
 		slides=data;
@@ -60,6 +112,7 @@
             this_el=$("#slide0");
             other_el=$("#slide1");
 	    flip=setInterval(nextslide,interval);
+	    pollgamepad_interval=setInterval(pollgamepad,250);
 	});
     </script>
 </head>
@@ -69,5 +122,6 @@
    	<img id=slide1 class=slides>
    </div>
    <div id=info></div>
+   <img id=infodrawing src=info-drawing.svg>
 </body>
 </html>
