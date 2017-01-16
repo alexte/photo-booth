@@ -101,7 +101,7 @@
 		// user moved stick or pressed other button;
 		show_info_drawing();
 	    if (gp.buttons[0].pressed) toggle_webcam();
-	    if (gp.buttons[1].pressed) if (webcam_active) capture_photo() else show_info_drawing();
+	    if (gp.buttons[1].pressed) { if (webcam_active) capture_photo(); else show_info_drawing(); }
 	}
 
 	$(document).ready(function(){
