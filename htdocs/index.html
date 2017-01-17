@@ -12,8 +12,11 @@
 	.slides { display:block; position:absolute; min-width:100%; min-height:100%; }
 	#info { display:none; position:absolute; left:1em; top:1em; font-size:48pt; font-size:15vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; }
 	#infodrawing { position:absolute; right:0; top:0; height:100%; display:none; }
-	#countdown { position:absolute; text-align:center; right:0; left:0; width:100%; top:35%; font-size:20vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; display:none; }
-	video { position:absolute; top:6vh; left:0; right:0; margin-left:auto; margin-right:auto; height:81vh; width:112vh; border:1em solid white; border-bottom:2em solid white; }
+	#countdown { position:absolute; text-align:center; right:0; left:0; width:100%; top:35%; font-size:20vh; color:#FFF; 
+		text-shadow: black 0.1vw 0.1vw 1vw; display:none; }
+	video { position:absolute; top:6vh; left:0; right:0; margin-left:auto; margin-right:auto; height:81vh; width:108vh; 
+		border:1em solid white; border-bottom:2em solid white; 
+		display:none; }
     </style>
 
     <script src="jquery/jquery.min.js"></script>
@@ -41,6 +44,7 @@
   	    return !!(navigator.getUserMedia);
 	}
 
+	var webcam_stream;
 	function requestVideo()
 	{
 	    if (!hasGetUserMedia()) 
@@ -51,12 +55,8 @@
 	    navigator.getUserMedia({video: true, audio: false},function(stream) {
     		var video = document.querySelector('video');
     		video.src = window.URL.createObjectURL(stream);
-
-    		// Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
-    		// See crbug.com/110938.
-    		video.onloadedmetadata = function(e) {
-      			// Ready to go. Do some stuff.
-    		};
+		webcam_stream=stream;
+		webcam_active=true;
   	    }, function (e) { show_info("Connecting to WebRTC (video) failed "); console.log("webrtc",e); } );
 	}
 
@@ -83,7 +83,6 @@
 
 	info_drawing_open=false;
 
-	
 	function hide_info_drawing()
 	{
 	    $("#infodrawing").fadeOut(800,function() { info_drawing_open=false; });
@@ -102,7 +101,19 @@
 	var webcam_active=false;
 	function toggle_webcam()
 	{
-		//TODO
+	    if (!webcam_active)
+	    {
+		requestVideo();
+		$("video").fadeIn(300);
+	    }
+	    else 
+	    {
+		$("video").fadeOut(300,function () {
+		    webcam_stream.getTracks()[0].stop();
+		    $("video").attr("src","");
+		    webcam_active=false;
+		});
+	    }
 	}
 
 	function capture_photo() {}
@@ -117,6 +128,8 @@
 	}
 
 	var pollgamepad_interval=false;
+	var pollgamepad_hold=false;
+
 	function pollgamepad()
 	{
 	    var gps;
@@ -131,11 +144,19 @@
 	    gp=gps[0];
 	    if (!gp || !gp.connected) return; 
 	    
+	    if (pollgamepad_hold) 
+	    {
+		if (gp.axes[0]==0 && gp.axes[1]==0 && !gp.buttons[0].pressed && !gp.buttons[1].pressed) pollgamepad_hold=false;
+		return;
+	    }
 	    if (gp.axes[0]!=0 || gp.axes[1]!=0 || gp.buttons[2].pressed || gp.buttons[3].pressed) 
+	    {
 		// user moved stick or pressed other button;
+		pollgamepad_hold=true;
 		show_info_drawing();
-	    if (gp.buttons[0].pressed) toggle_webcam();
-	    if (gp.buttons[1].pressed) { if (webcam_active) capture_countdown(); else show_info_drawing(); }
+	    }
+	    if (gp.buttons[0].pressed) { pollgamepad_hold=true; toggle_webcam(); }
+	    if (gp.buttons[1].pressed) { pollgamepad_hold=true; if (webcam_active) capture_countdown(); else show_info_drawing(); }
 	}
 
 	$(document).ready(function(){
