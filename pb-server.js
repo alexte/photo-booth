@@ -26,9 +26,9 @@ function read_slideshow_dir(callback)
 // ----  API URLs
 //
     app.get("/capture",function(req,res) {
-        // TODO: Capture a photo using die capture shell script
-	// and send it to the browser
-        res.send("Captured");
+        // Capture a photo using die capture shell script
+	// and send the name to the browser or error text
+	res.send({error: "TODO capture"});
     });
 
     app.get("/images.json",function(req,res) {

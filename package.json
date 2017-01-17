@@ -8,6 +8,7 @@
     "cookie-parser": "1.x",
     "body-parser": "1.x",
     "uid-safe": "1.x",
+    "jquery": "3.x",
     "font-awesome": "4.x"
   }
 }
