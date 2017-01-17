@@ -13,6 +13,7 @@
 	#info { display:none; position:absolute; left:1em; top:1em; font-size:48pt; font-size:15vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; }
 	#infodrawing { position:absolute; right:0; top:0; height:100%; display:none; }
 	#countdown { position:absolute; text-align:center; right:0; left:0; width:100%; top:35%; font-size:20vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; display:none; }
+	video { position:absolute; top:6vh; left:0; right:0; margin-left:auto; margin-right:auto; height:81vh; width:112vh; border:1em solid white; border-bottom:2em solid white; }
     </style>
 
     <script src="jquery/jquery.min.js"></script>
@@ -33,6 +34,30 @@
 	{
 	    $("#info").text(msg).fadeIn(250);
 	    if (autoaway) setTimeout(function () { $("#info").fadeOut(1000); },parseInt(autoaway)*1000);
+	}
+
+	function hasGetUserMedia() 
+	{
+  	    return !!(navigator.getUserMedia);
+	}
+
+	function requestVideo()
+	{
+	    if (!hasGetUserMedia()) 
+	    {
+		show_info("Browser does not support WebRTC (Video)");
+		return;
+	    }
+	    navigator.getUserMedia({video: true, audio: false},function(stream) {
+    		var video = document.querySelector('video');
+    		video.src = window.URL.createObjectURL(stream);
+
+    		// Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
+    		// See crbug.com/110938.
+    		video.onloadedmetadata = function(e) {
+      			// Ready to go. Do some stuff.
+    		};
+  	    }, function (e) { show_info("Connecting to WebRTC (video) failed "); console.log("webrtc",e); } );
 	}
 
 	function nextslide()
@@ -133,5 +158,6 @@
    <div id=info></div>
    <img id=infodrawing src=info-drawing.svg>
    <div id=countdown></div>
+   <video autoplay></video>
 </body>
 </html>
