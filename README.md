@@ -6,7 +6,7 @@ A software to make a photo booth from a DSLR, a webcam, a gamepad and a Linux bo
 Quick Howto
 -----------
 
-Setup a Linux box with nodejs, gphoto2, Chrome browser and "convert" from ImageMagick, .
+Setup a Linux box with nodejs, gphoto2, Chromium browser and "convert" from ImageMagick, .
 
 Connect the following gear to the Linux box:
 
@@ -22,6 +22,7 @@ nodejs pb-server.js
 ```
 
 Open the browser and go to http://localhost:8082/
+Use the joystick/gamepad buttons to active the webcam (viewfinder) and camera.
 
 Long Howto
 ----------
@@ -29,3 +30,20 @@ Long Howto
 Not written yet...
 
 File an issue, or fork me on github if you need more infos.
+
+Pitfalls
+--------
+
+Chrome does not activate the webcam, because Google thinks http://localhost is not secure enough, and 
+they insist on https. Really Google ? So you have to use chromium, or use https with a real certificate
+for https://localhost/ ;-)
+
+You might want to deactivate the screen blanker, and the camera auto shutdown.
+
+Security
+---------
+
+None! 
+
+Don't use this on a public accessible IP address. It even works disconnected after install.
+
