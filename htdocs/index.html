@@ -153,11 +153,10 @@
 	{
 	    if (countdown_running) return;
 	    countdown_running=true;
-	    $("#countdown").text(4)
-		.fadeIn(600).fadeOut(600,function() { $(this).text(3); })
-		.fadeIn(600).fadeOut(600,function() { $(this).text(2); })
-		.fadeIn(600).fadeOut(600,function() { $(this).html("&#x1F603"); })
-		.fadeIn(600).fadeOut(600,capture_photo);
+	    $("#countdown").text(3)
+		.fadeIn(500).fadeOut(600,function() { $(this).text(2); })
+		.fadeIn(500).fadeOut(600,function() { $(this).html("&#x1F603"); })
+		.fadeIn(500).fadeOut(600,capture_photo);
 	}
 
 	var pollgamepad_interval=false;
