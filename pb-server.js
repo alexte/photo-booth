@@ -14,14 +14,11 @@ var exec = require('child_process').exec;
 
 var app = express();
 
-var slides=[];
-
 function read_slideshow_dir(callback)
 {
     fs.readdir(slideshowdir,function (err,files) {
 	if (err) { throw new Error(err); }
-	slides=files;
-	callback();
+	callback(files);
     });
 }
 
@@ -33,13 +30,13 @@ function read_slideshow_dir(callback)
 	// and send the name to the browser or error text
         exec('./capture-photo.sh', function (error, stdout, stderr) {
   	    if (error) res.send({error: "Capture Script Fehler"});
-  	    else if (stdout=="ERROR") res.send({error: "Kamera Fehler"});
+  	    else if (stdout.trim()=="ERROR") res.send({error: "Kamera Fehler"});
   	    else res.send({image:stdout.trim()});
 	});
     });
 
     app.get("/images.json",function(req,res) {
-        res.send(slides);
+        read_slideshow_dir(function (data) { res.send(data); });
     });
 
     app.get("/new.images.json",function(req,res) {
@@ -66,12 +63,9 @@ function read_slideshow_dir(callback)
 //
 // ---- Startup
 //
-read_slideshow_dir(run);
+
 
 // 
 // ---- GO!
 // 
-function run()
-{
     app.listen(port, function () { console.log("Photo-booth service listening on port "+port+"!"); });
-}
