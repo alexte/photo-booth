@@ -3,13 +3,16 @@
 // by: Alexander Terczka <alex@mail.at>
 //--------------------------------------------------
 
+// --- settings
+var slideshowdir = "images/slideshow/";
+var port = 8082;
+
+// --- requires
 var fs = require('fs');
 var express = require('express');
-var slideshowdir = "images/slideshow/";
+var exec = require('child_process').exec;
 
 var app = express();
-
-var port = 8082;
 
 var slides=[];
 
@@ -28,7 +31,11 @@ function read_slideshow_dir(callback)
     app.get("/capture",function(req,res) {
         // Capture a photo using die capture shell script
 	// and send the name to the browser or error text
-	res.send({error: "TODO capture"});
+        exec('./capture-photo.sh', function (error, stdout, stderr) {
+  	    if (error) res.send({error: "Capture Script Fehler"});
+  	    else if (stdout=="ERROR") res.send({error: "Kamera Fehler"});
+  	    else res.send({image:stdout.trim()});
+	});
     });
 
     app.get("/images.json",function(req,res) {

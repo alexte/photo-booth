@@ -15,7 +15,7 @@
 	#countdown { position:absolute; text-align:center; right:0; left:0; width:100%; top:35%; font-size:20vh; color:#FFF; 
 		text-shadow: black 0.1vw 0.1vw 1vw; display:none; }
 	video { position:absolute; top:6vh; left:0; right:0; margin-left:auto; margin-right:auto; height:81vh; width:108vh; 
-		border:1em solid white; border-bottom:2em solid white; 
+		border:1em solid white; border-bottom:2em solid white; transform: scaleX(-1);
 		display:none; }
 	#flash { position:absolute; right:0; left:0; bottom:0; top:0; display:none; background-color:#FFF; }
     </style>
@@ -61,16 +61,22 @@
   	    }, function (e) { show_info("Connecting to WebRTC (video) failed "); console.log("webrtc",e); } );
 	}
 
-	var holdslide=false;
 	function nextslide()
 	{
-	    if (holdslide) { holdslide=false; return; }
+	    if (flip) clearTimeout(flip);
+	    nextslide_job();
+	}
+
+	function nextslide_job()
+	{
 	    if (slides.length<1) show_info("No images found!"); // no images !
 
 	    current_slide=(current_slide+1)%slides.length;
 	    var tmp=this_el;
 	    this_el=other_el;
 	    other_el=tmp;
+	    this_el.stop();
+	    other_el.stop();
 
 	    this_el.attr("src","images/"+slides[current_slide]);
 	    setTimeout(function() {
@@ -82,6 +88,7 @@
 		    if (overflow_x+overflow_y>0) this_el.animate({left:-overflow_x+"px",top:-overflow_y+"px"},interval-fadetime-100);
 		    other_el.fadeOut(fadetime,function () { other_el.css({top:0,left:0}); });
 	    },loadwait);
+	    flip=setTimeout(nextslide_job,interval);
 	}
 
 	info_drawing_open=false;
@@ -119,17 +126,23 @@
 	    }
 	}
 
+	function show_flash()
+	{
+	    $("#flash").show().fadeIn(200).fadeOut(300, function () {
+		toggle_webcam("off");
+	    });
+	}
+
 	function capture_photo() 
 	{
-	    $("#flash").show().fadeIn(200).fadeOut(300);
+	    setTimeout(show_flash,500);
 	    $.getJSON("capture",function (data) {
 		if (data.error) show_info(data.error,6);
-		if (data.img) {
-		    slides.splice(current_slide+1,0,data.img) 
+		if (data.image) {
+		    slides.splice(current_slide+1,0,data.image) 
 		    nextslide();
-		    holdslide=true;
+		    show_info("Neues Photo!",3);
 		}
-		toggle_webcam("off");
 	    });
 	    countdown_running=false;
 	}
@@ -186,7 +199,6 @@
 	    });
             this_el=$("#slide0");
             other_el=$("#slide1");
-	    flip=setInterval(nextslide,interval);
 	    pollgamepad_interval=setInterval(pollgamepad,100);
 	});
     </script>
