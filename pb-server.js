@@ -39,12 +39,6 @@ function read_slideshow_dir(callback)
         read_slideshow_dir(function (data) { res.send(data); });
     });
 
-    app.get("/new.images.json",function(req,res) {
-        // TODO: browser asks what images to show
-	// server answers delayed (long polling) when nothing changed
-        res.send("new.images.json");
-    });
-
 //
 // ---- Client Libraries
 //

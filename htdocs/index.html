@@ -32,7 +32,6 @@
         var current_slide_element=0;
         var this_el;
         var other_el;
-	var flip=false;
 
 	function show_info(msg,autoaway)
 	{
@@ -40,6 +39,7 @@
 	    if (autoaway) setTimeout(function () { $("#info").fadeOut(1000); },parseInt(autoaway)*1000);
 	}
 
+    // ---------------------------------------- webcam handling
 	function hasGetUserMedia() 
 	{
   	    return !!(navigator.getUserMedia);
@@ -61,53 +61,6 @@
   	    }, function (e) { show_info("Connecting to WebRTC (video) failed "); console.log("webrtc",e); } );
 	}
 
-	function nextslide()
-	{
-	    if (flip) clearTimeout(flip);
-	    nextslide_job();
-	}
-
-	function nextslide_job()
-	{
-	    if (slides.length<1) show_info("No images found!"); // no images !
-
-	    current_slide=(current_slide+1)%slides.length;
-	    var tmp=this_el;
-	    this_el=other_el;
-	    other_el=tmp;
-	    this_el.stop();
-	    other_el.stop();
-
-	    this_el.attr("src","images/"+slides[current_slide]);
-	    setTimeout(function() {
-		    this_el.fadeIn(fadetime);
-		    var overflow_y=parseInt(this_el.css("height"))-parseInt($("#imagediv").css("height"));
-		    var overflow_x=parseInt(this_el.css("width"))-parseInt($("#imagediv").css("width"));
-		    if (overflow_x<0) overflow_x=0;
-		    if (overflow_y<0) overflow_y=0;
-		    if (overflow_x+overflow_y>0) this_el.animate({left:-overflow_x+"px",top:-overflow_y+"px"},interval-fadetime-100);
-		    other_el.fadeOut(fadetime,function () { other_el.css({top:0,left:0}); });
-	    },loadwait);
-	    flip=setTimeout(nextslide_job,interval);
-	}
-
-	info_drawing_open=false;
-
-	function hide_info_drawing()
-	{
-	    $("#infodrawing").fadeOut(800,function() { info_drawing_open=false; });
-	}
-
-	function show_info_drawing()
-	{
-	    if (!info_drawing_open)
-	    {
-		info_drawing_open=true;
-		$("#infodrawing").fadeIn(800);
-		setTimeout(hide_info_drawing,5000);
-	    }
-	}
-
 	var webcam_active=false;
 	function toggle_webcam(mode)
 	{
@@ -125,6 +78,80 @@
 		});
 	    }
 	}
+
+
+    // -------------------------------------------- slide show
+	var fliptimer=false;
+
+	function load_slide_list()
+	{
+	    $.getJSON("images.json",function(data){
+		slides=data;
+		current_slide=-1;
+		nextslide();
+	    }).fail(function () {
+		show_info("Loading image list failed!");
+		current_slide=-1;
+		nextslide();
+	    });
+	}
+
+	function nextslide()
+	{
+	    if (fliptimer) clearTimeout(fliptimer);
+	    nextslide_job();
+	}
+
+	function nextslide_job()
+	{
+	    fliptimer=false;
+	    if (slides.length<1) show_info("No images found!"); // no images !
+
+	    current_slide=current_slide+1
+	    if (current_slide>=slides.length) // end of slides list, reload from server
+	    {
+	    	load_slide_list();
+		return;
+	    }
+	    var tmp=this_el;
+	    this_el=other_el;
+	    other_el=tmp;
+	    this_el.stop();
+	    other_el.stop();
+
+	    this_el.attr("src","images/"+slides[current_slide]);
+	    setTimeout(function() {
+		    this_el.fadeIn(fadetime);
+		    var overflow_y=parseInt(this_el.css("height"))-parseInt($("#imagediv").css("height"));
+		    var overflow_x=parseInt(this_el.css("width"))-parseInt($("#imagediv").css("width"));
+		    if (overflow_x<0) overflow_x=0;
+		    if (overflow_y<0) overflow_y=0;
+		    if (overflow_x+overflow_y>0) this_el.animate({left:-overflow_x+"px",top:-overflow_y+"px"},interval-fadetime-100);
+		    other_el.fadeOut(fadetime,function () { other_el.css({top:0,left:0}); });
+	    },loadwait);
+	    fliptimer=setTimeout(nextslide_job,interval);
+	}
+
+
+   // ----------------------------- info graphics
+	var info_drawing_open=false;
+
+	function hide_info_drawing()
+	{
+	    $("#infodrawing").fadeOut(800,function() { info_drawing_open=false; });
+	}
+
+	function show_info_drawing()
+	{
+	    if (!info_drawing_open)
+	    {
+		info_drawing_open=true;
+		$("#infodrawing").fadeIn(800);
+		setTimeout(hide_info_drawing,5000);
+	    }
+	}
+
+    // ----------------------------- virtual camery mode
 
 	function show_flash()
 	{
@@ -159,6 +186,9 @@
 		.fadeIn(500).fadeOut(600,capture_photo);
 	}
 
+
+    // ----------------------------- gamepad handling
+
 	var pollgamepad_interval=false;
 	var pollgamepad_hold=false;
 
@@ -191,11 +221,10 @@
 	    if (gp.buttons[1].pressed) { pollgamepad_hold=true; if (webcam_active) show_countdown(); else show_info_drawing(); }
 	}
 
+
+    // ----------------------------- main()
 	$(document).ready(function(){
-	    $.getJSON("images.json",function(data){
-		slides=data;
-		nextslide();
-	    });
+	    load_slide_list();
             this_el=$("#slide0");
             other_el=$("#slide1");
 	    pollgamepad_interval=setInterval(pollgamepad,100);
