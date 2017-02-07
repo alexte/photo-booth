@@ -3,6 +3,10 @@ Photo Booth
 
 A software to make a photo booth from a DSLR, a webcam, a gamepad and a Linux box.
 
+Happy Birthday Barbara!
+
+I made this software for the birthday party of Barbara in February 2017.
+
 Quick Howto
 -----------
 
