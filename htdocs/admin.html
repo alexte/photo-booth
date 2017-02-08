@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Photo Booth</title>
+    <style>
+    	body {	background-color: #000; color: #FFF; 
+	        font-family: sans-serif; font-size: 18pt; 
+		margin:0; padding:0;
+             }
+	h1 { margin:0.5em; }
+	.thumbs { margin:1em; }
+	.thumbs img { max-height:10em; margin:0.2em; border:2px solid gray; }
+	.thumbs img:hover { border:2px solid white; }
+    </style>
+
+    <script src="jquery/jquery.min.js"></script>
+    <script>
+	var slides=[];
+
+        function load_slide_list()
+        {
+            $.getJSON("images.json",function(data){
+                slides=data;
+		for (var slide of slides)
+		{
+		    $("<img src=/images/"+slide+">").appendTo("#thumbs").get(0).imgname=slide;
+		}
+            }).fail(function () {
+		$("#thumbs").append("Cannot load image list!");
+            });
+            $.getJSON("inactive.images.json",function(data){
+                slides=data;
+		for (var slide of slides)
+		{
+		    $("<img src=/inactive-images/"+slide+">").appendTo("#inactive_thumbs").get(0).imgname=slide;
+		}
+            }).fail(function () {
+		$("#inactive_thumbs").append("Cannot load image list!");
+            });
+        }
+
+        $(document).ready(function(){
+	    load_slide_list();
+	    $("#thumbs").click("img",function (e) {
+		if (confirm("Bild deaktivieren ("+e.target.imgname+") ?")) $.getJSON("deactivate",{img:e.target.imgname});
+		$(e.target).appendTo("#inactive_thumbs");
+	    });
+	    $("#inactive_thumbs").click("img",function (e) {
+		if (confirm("Bild reaktivieren ("+e.target.imgname+") ?")) $.getJSON("reactivate",{img:e.target.imgname});
+		$(e.target).appendTo("#thumbs");
+	    });
+	});
+    </script>
+</head>
+<body>
+   <h1>Photo Booth Admin Page</h1>
+   <div class="thumbs" id="thumbs"></div>
+   <hr>
+   <h3>Inaktive Bilder</h3>
+   <div class="thumbs" id="inactive_thumbs"></div>
+</body>
+</html>

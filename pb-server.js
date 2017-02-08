@@ -5,6 +5,7 @@
 
 // --- settings
 var slideshowdir = "images/slideshow/";
+var inactive_slideshowdir = "images/inactive_slideshow/";
 var port = 8082;
 
 // --- requires
@@ -14,9 +15,9 @@ var exec = require('child_process').exec;
 
 var app = express();
 
-function read_slideshow_dir(callback)
+function read_slideshow_dir(dir,callback)
 {
-    fs.readdir(slideshowdir,function (err,files) {
+    fs.readdir(dir,function (err,files) {
 	if (err) { throw new Error(err); }
 	callback(files);
     });
@@ -36,9 +37,26 @@ function read_slideshow_dir(callback)
     });
 
     app.get("/images.json",function(req,res) {
-        read_slideshow_dir(function (data) { res.send(data); });
+        read_slideshow_dir(slideshowdir,function (data) { res.send(data); });
     });
 
+    app.get("/inactive.images.json",function(req,res) {
+        read_slideshow_dir(inactive_slideshowdir,function (data) { res.send(data); });
+    });
+
+    app.get("/deactivate",function(req,res) {
+	var img=req.query.img;
+	if (img.match("^[a-zA-Z0-9][a-zA-Z.0-9_-]+$")==null) { res.send("invalid filename"); return; }
+	fs.renameSync(slideshowdir+img,inactive_slideshowdir+img);
+  	res.send("OK");
+    });
+
+    app.get("/reactivate",function(req,res) {
+	var img=req.query.img;
+	if (img.match("^[a-zA-Z0-9][a-zA-Z.0-9_-]+$")==null) { res.send("invalid filename"); return; }
+	fs.renameSync(inactive_slideshowdir+img,slideshowdir+img);
+  	res.send("OK");
+    });
 //
 // ---- Client Libraries
 //
@@ -47,12 +65,12 @@ function read_slideshow_dir(callback)
 //
 // ----  serve static files from "htdocs" files
 //
-    app.get('/', function (req, res) {
-        res.sendFile(__dirname+"/htdocs/index.html");
-    });
+    app.get('/', function (req, res) { res.sendFile(__dirname+"/htdocs/index.html"); });
+    app.get('/admin', function (req, res) { res.sendFile(__dirname+"/htdocs/admin.html"); });
 
     app.use(express.static('htdocs'));
     app.use("/images",express.static('images/slideshow/'));
+    app.use("/inactive-images",express.static('images/inactive_slideshow/'));
 
 //
 // ---- Startup
