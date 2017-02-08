@@ -9,7 +9,7 @@
 		margin:0; padding:0;
              }
 	#imagediv { position:absolute; top:0; bottom:0; left:0; right:0; overflow:hidden; }
-	.slides { display:block; position:absolute; min-width:100%; min-height:100%; }
+	#imagediv img { display:block; position:absolute; min-width:100%; min-height:100%; }
 	#info { display:none; position:absolute; left:1em; top:1em; font-size:15vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; }
 	#infodrawing { position:absolute; right:0; top:0; height:100%; display:none; }
 	#countdown { position:absolute; text-align:center; right:0; left:0; width:100%; top:35%; font-size:20vh; color:#FFF; 
@@ -29,9 +29,6 @@
 
 
 	var current_slide=-1;
-        var current_slide_element=0;
-        var this_el;
-        var other_el;
 
 	function show_info(msg,autoaway)
 	{
@@ -57,8 +54,7 @@
     		var video = document.querySelector('video');
     		video.src = window.URL.createObjectURL(stream);
 		webcam_stream=stream;
-		webcam_active=true;
-  	    }, function (e) { show_info("Connecting to WebRTC (video) failed "); console.log("webrtc",e); } );
+  	    }, function (e) { show_info("Connecting to WebRTC (video) failed ",5); console.log("webrtc",e); } );
 	}
 
 	var webcam_active=false;
@@ -68,6 +64,7 @@
 	    {
 		requestVideo();
 		$("video").fadeIn(300);
+		webcam_active=true;
 	    }
 	    else 
 	    {
@@ -102,6 +99,43 @@
 	    nextslide_job();
 	}
 
+	var imgstack=[];
+	var lastimg=false;
+
+	var slide_show_mode="fade_n_slide";
+	// var slide_show_mode="photostack";
+
+	function show_slide(url)
+	{
+	    console.log(url);
+	    var img=new Image();
+
+	    img.src=url;
+	    img.onload=function () {
+		if (slide_show_mode=="fade_n_slide")
+		{
+		    var qimg=$(img);
+		    qimg.hide();
+
+			// fadein
+	    	    $("#imagediv").append(qimg);
+		    qimg.fadeIn(fadetime);
+
+			// slide
+		    var overflow_y=parseInt(qimg.css("height"))-parseInt($("#imagediv").css("height"));
+		    var overflow_x=parseInt(qimg.css("width"))-parseInt($("#imagediv").css("width"));
+		    if (overflow_x<0) overflow_x=0;
+		    if (overflow_y<0) overflow_y=0;
+		    if (overflow_x+overflow_y>0) qimg.animate({left:-overflow_x+"px",top:-overflow_y+"px"},interval-fadetime-100);
+
+		    	// fadeout and remote old
+		    if (lastimg) $(lastimg).fadeOut(fadetime,function () { $(lastimg).remove(); lastimg=img; });
+		    else lastimg=img;
+		}
+	    }
+	    imgstack.push(img);
+	}
+
 	function nextslide_job()
 	{
 	    fliptimer=false;
@@ -113,22 +147,9 @@
 	    	load_slide_list();
 		return;
 	    }
-	    var tmp=this_el;
-	    this_el=other_el;
-	    other_el=tmp;
-	    this_el.stop();
-	    other_el.stop();
 
-	    this_el.attr("src","images/"+slides[current_slide]);
-	    setTimeout(function() {
-		    this_el.fadeIn(fadetime);
-		    var overflow_y=parseInt(this_el.css("height"))-parseInt($("#imagediv").css("height"));
-		    var overflow_x=parseInt(this_el.css("width"))-parseInt($("#imagediv").css("width"));
-		    if (overflow_x<0) overflow_x=0;
-		    if (overflow_y<0) overflow_y=0;
-		    if (overflow_x+overflow_y>0) this_el.animate({left:-overflow_x+"px",top:-overflow_y+"px"},interval-fadetime-100);
-		    other_el.fadeOut(fadetime,function () { other_el.css({top:0,left:0}); });
-	    },loadwait);
+	    show_slide("images/"+slides[current_slide]);
+
 	    fliptimer=setTimeout(nextslide_job,interval);
 	}
 
@@ -225,16 +246,12 @@
     // ----------------------------- main()
 	$(document).ready(function(){
 	    load_slide_list();
-            this_el=$("#slide0");
-            other_el=$("#slide1");
 	    pollgamepad_interval=setInterval(pollgamepad,100);
 	});
     </script>
 </head>
 <body>
    <div id=imagediv>
-	<img id=slide0 class=slides>
-   	<img id=slide1 class=slides>
    </div>
    <img id=infodrawing src=info-drawing.svg>
    <video autoplay></video>
