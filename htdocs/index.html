@@ -9,7 +9,7 @@
 		margin:0; padding:0;
              }
 	#imagediv { position:absolute; top:0; bottom:0; left:0; right:0; overflow:hidden; }
-	#imagediv img { display:block; position:absolute; min-width:100%; min-height:100%; }
+	#imagediv .fadeimg { display:block; position:absolute; min-width:100%; min-height:100%; }
 	#info { display:none; position:absolute; left:1em; top:1em; font-size:15vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; }
 	#infodrawing { position:absolute; right:0; top:0; height:100%; display:none; }
 	#countdown { position:absolute; text-align:center; right:0; left:0; width:100%; top:35%; font-size:20vh; color:#FFF; 
@@ -18,22 +18,42 @@
 		border:1em solid white; border-bottom:2em solid white; transform: scaleX(-1);
 		display:none; }
 	#flash { position:absolute; right:0; left:0; bottom:0; top:0; display:none; background-color:#FFF; }
+
+	.photos { position:absolute; height:144vh; width:192vh; top:10vh; left:100vw;
+		  border:1em solid white; border-bottom:2em solid white;  
+		  box-shadow:2px 2px 10px #000;
+	        }
     </style>
 
     <script src="jquery/jquery.min.js"></script>
     <script>
-	var slides=[];
-	var interval=20000; // milli seconds
-	var fadetime=1500; // milli seconds
+    // -------------------------------------- changeable parameters
+	// var slide_show_mode="fade_n_slide";
+	var slide_show_mode="photostack";
+
+	var interval=10000; // milli seconds
+	var fadetime=1000; // milli seconds
 	var loadwait=100; // milli seconds
 
-
+    // --------------------------------------- global stuff
+	var slides=[];
 	var current_slide=-1;
 
 	function show_info(msg,autoaway)
 	{
 	    $("#info").text(msg).fadeIn(250);
 	    if (autoaway) setTimeout(function () { $("#info").fadeOut(1000); },parseInt(autoaway)*1000);
+	}
+
+	function foreach(arr,f)
+	{
+	    for(var i=0;i<arr.length;i++)
+		if (arr[i]) f(arr[i]);
+	}
+
+	function randInt(a,b)
+	{
+	    return Math.floor(a+Math.random()*(b-a)+0.5);
 	}
 
     // ---------------------------------------- webcam handling
@@ -101,13 +121,11 @@
 
 	var imgstack=[];
 	var lastimg=false;
-
-	var slide_show_mode="fade_n_slide";
-	// var slide_show_mode="photostack";
+	var stackposition=-1;
 
 	function show_slide(url)
 	{
-	    console.log(url);
+	    // console.log(url);
 	    var img=new Image();
 
 	    img.src=url;
@@ -118,6 +136,7 @@
 		    qimg.hide();
 
 			// fadein
+		    qimg.addClass("fadeimg");
 	    	    $("#imagediv").append(qimg);
 		    qimg.fadeIn(fadetime);
 
@@ -128,12 +147,44 @@
 		    if (overflow_y<0) overflow_y=0;
 		    if (overflow_x+overflow_y>0) qimg.animate({left:-overflow_x+"px",top:-overflow_y+"px"},interval-fadetime-100);
 
-		    	// fadeout and remote old
+		    	// fadeout and remove old
 		    if (lastimg) $(lastimg).fadeOut(fadetime,function () { $(lastimg).remove(); lastimg=img; });
 		    else lastimg=img;
 		}
+		if (slide_show_mode=="photostack")
+		{
+		    var qimg=$(img);
+		    qimg.hide();
+
+			// resize and resize
+		    stackposition=(stackposition+1)%10;
+		    // qimg.addClass("photos photo"+stackposition);
+		    qimg.addClass("photos");
+		    qimg.css({top:"10vh",left:"10vw",height:"244vh", width:"392vh",opacity:0 });
+		    qimg.animate({deg:randInt(-15,15),opacity:1,
+				  top:""+randInt(0,20)+"vh",left:""+randInt(0,40)+"vw",
+				  height:"72vh", width:"96vh" },
+		    	{   step: function(now,fx) { if (fx.prop=="deg") $(fx.elem).css("transform","rotate("+now+"deg)"); },
+			    duration: 800
+			});
+	    	    $("#imagediv").append(qimg);
+		    qimg.show();
+
+		    	// fadeout and remove older images
+		    if (imgstack.length>=10)
+		    {
+			imgstack[0].remove();
+			imgstack.shift();
+		    }
+		    var darken=10*imgstack.length;
+		    foreach(imgstack,function (img) {
+			// img.css("filter","brightness("+brightness+"%)");
+			img.animate({darken:darken},{ step: function(now,fx) { $(fx.elem).css("filter","brightness("+(100-now)+"%)"); } },500);
+			darken-=10;
+		    });
+	    	    imgstack.push(qimg);
+		}
 	    }
-	    imgstack.push(img);
 	}
 
 	function nextslide_job()
