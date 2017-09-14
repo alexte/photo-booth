@@ -19,6 +19,18 @@ Connect the following gear to the Linux box:
 - a Joystick/Gamepad. I tested with "Speed-Link Competition Pro"
 - a 1080 display.
 
+Pull all needed dependencies using npm
+
+```
+npm install
+```
+
+Check if you camera works with gphoto2
+
+```
+gphoto2 --capture-image-and-download --auto-detect --filename=testimage.jpg
+```
+
 Start the pb-server.js server process in background:
 
 ```
