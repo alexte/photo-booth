@@ -10,12 +10,12 @@
              }
 	#imagediv { position:absolute; top:0; bottom:0; left:0; right:0; overflow:hidden; }
 	#imagediv .fadeimg { display:block; position:absolute; min-width:100%; min-height:100%; }
-	#info { display:none; position:absolute; left:1em; top:1em; font-size:15vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; }
+	#info { display:none; position:absolute; left:1em; top:1em; font-size:12vh; color:#FFF; text-shadow: black 0.1vw 0.1vw 1vw; }
 	#infodrawing { position:absolute; right:0; top:0; height:100%; display:none; }
 	#countdown { position:absolute; text-align:center; right:0; left:0; width:100%; top:35%; font-size:20vh; color:#FFF; 
 		text-shadow: black 0.1vw 0.1vw 1vw; display:none; }
-	video { position:absolute; top:6vh; left:0; right:0; margin-left:auto; margin-right:auto; height:81vh; width:108vh; 
-		border:1em solid white; transform: scaleX(-1);
+	video { position:absolute; top:6vh; left:0; right:0; margin-left:auto; margin-right:auto; height:80vh; width:120vh; 
+		border:1em solid white; transform: scaleX(-1); background-color:black; 
 		display:none; }
 	#flash { position:absolute; right:0; left:0; bottom:0; top:0; display:none; background-color:#FFF; }
 
@@ -23,6 +23,12 @@
 		  border:1em solid white; 
 		  box-shadow:2px 2px 20px #000;
 	        }
+
+        #url { position: fixed; bottom: 0; left: 0;width: 100%; font-family: "Ubuntu"; font-size: 30pt; 
+               background-color: lightgrey; background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,0));
+               padding: 0.5em; transform-origin: 0% 0%; width: 100%; color: white;
+             }
+
     </style>
 
     <script src="jquery/jquery.min.js"></script>
@@ -62,19 +68,25 @@
   	    return !!(navigator.getUserMedia);
 	}
 
-	var webcam_stream;
+	var webcam_stream=false;
+
 	function requestVideo()
 	{
 	    if (!hasGetUserMedia()) 
 	    {
 		show_info("Browser does not support WebRTC (Video)");
+		webcam_stream=false;
 		return;
 	    }
 	    navigator.getUserMedia({video: true, audio: false},function(stream) {
     		var video = document.querySelector('video');
-    		video.src = window.URL.createObjectURL(stream);
+    		video.srcObject = stream;
 		webcam_stream=stream;
-  	    }, function (e) { show_info("Connecting to WebRTC (video) failed ",5); console.log("webrtc",e); } );
+  	    }, function (e) { 
+		show_info("Connecting to WebRTC (video) failed ",5); 
+		console.log("webrtc",e);
+		webcam_stream=false;
+	    } );
 	}
 
 	var webcam_active=false;
@@ -89,7 +101,7 @@
 	    else 
 	    {
 		$("video").fadeOut(300,function () {
-		    webcam_stream.getTracks()[0].stop();
+		    if (webcam_stream && webcam_stream.getTracks) webcam_stream.getTracks()[0].stop();
 		    $("video").attr("src","");
 		    webcam_active=false;
 		});
@@ -195,7 +207,8 @@
 	    current_slide=current_slide+1
 	    if (current_slide>=slides.length) // end of slides list, reload from server
 	    {
-	    	load_slide_list();
+	        if (slides.length>0) load_slide_list();
+		else setTimeout(load_slide_list,2000);
 		return;
 	    }
 
@@ -234,7 +247,6 @@
 
 	function capture_photo() 
 	{
-	    setTimeout(show_flash,500);
 	    $.getJSON("capture",function (data) {
 		if (data.error) show_info(data.error,6);
 		if (data.image) {
@@ -252,10 +264,11 @@
 	{
 	    if (countdown_running) return;
 	    countdown_running=true;
-	    $("#countdown").text(3)
-		.fadeIn(500).fadeOut(600,function() { $(this).text(2); })
+	    setTimeout(capture_photo,1000); // capture photo is slow, starting it before countdown finishes
+	    $("#countdown").text("3")
+		.fadeIn(500).fadeOut(600,function() { $(this).text("2"); })
 		.fadeIn(500).fadeOut(600,function() { $(this).html("&#x1F603"); })
-		.fadeIn(500).fadeOut(600,capture_photo);
+		.fadeIn(500).fadeOut(600,show_flash);
 	}
 
 
@@ -298,6 +311,10 @@
 	$(document).ready(function(){
 	    load_slide_list();
 	    pollgamepad_interval=setInterval(pollgamepad,100);
+	    $("body").keypress(function (e) { 
+		if(e.keyCode==32) toggle_webcam(); 
+		if (e.keyCode==13) show_countdown();
+	    });
 	});
     </script>
 </head>
@@ -309,5 +326,6 @@
    <div id=flash></div>
    <div id=info></div>
    <img id=infodrawing src=info-drawing.svg>
+   <div id=url>Show your URL or Infos here!</div>
 </body>
 </html>

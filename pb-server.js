@@ -7,11 +7,13 @@
 var slideshowdir = "images/slideshow/";
 var inactive_slideshowdir = "images/inactive_slideshow/";
 var port = 8082;
+var use_gphoto2_as_webcam = true;
 
 // --- requires
 var fs = require('fs');
 var express = require('express');
 var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 
 var app = express();
 
@@ -24,16 +26,60 @@ function read_slideshow_dir(dir,callback)
 }
 
 //
+// ---------- webcam process controll
+// this process streams gphoto2 to webcam v4l2
+// and is stopped for taking photos
+// 
+var webcam_process=false;
+var webcam_mode=false;
+var last_attempt=0;
+
+function start_webcam_mode()
+{
+    if (!use_gphoto2_as_webcam) return;
+    webcam_mode=true;
+    keep_webcam_running();
+}
+
+function keep_webcam_running()
+{
+    if (webcam_mode==false) return;
+
+    var now=new Date().getTime();
+    if (now-last_attempt<5000) // 5s
+    {       // try later again
+	setTimeout(keep_webcam_running,5000);
+	return;
+    }
+    last_attempt=now;
+    webcam_process=spawn("./start_webcam.sh",[],{ "stdio":"inherit" });
+    webcam_process.on("error",function (e) { console.log("Could not start webcam_process\n"); keep_webcam_running(); });
+    webcam_process.on("close",function (c) { console.log("Webcam_process terminated with "+c+"\n"); keep_webcam_running(); });
+}
+
+function stop_webcam_mode()
+{
+    if (!use_gphoto2_as_webcam) return;
+    webcam_mode=false;
+    webcam_process=spawn("./stop_webcam.sh",[],{ "stdio":"inherit" });
+}
+
+//
 // ----  API URLs
 //
     app.get("/capture",function(req,res) {
         // Capture a photo using die capture shell script
 	// and send the name to the browser or error text
-        exec('./capture-photo.sh', function (error, stdout, stderr) {
-  	    if (error) res.send({error: "Capture Script Fehler"});
-  	    else if (stdout.trim()=="ERROR") res.send({error: "Kamera Fehler"});
-  	    else res.send({image:stdout.trim()});
-	});
+	stop_webcam_mode();
+	setTimeout(function () {
+	    console.log("Taking photo\n");
+            exec('./capture-photo.sh', function (error, stdout, stderr) {
+  	        if (error) res.send({error: "Capture Script Fehler"});
+  	        else if (stdout.trim()=="ERROR") res.send({error: "Kamera Fehler"});
+  	        else res.send({image:stdout.trim()});
+		start_webcam_mode();
+	    });
+	},100);
     });
 
     app.get("/images.json",function(req,res) {
@@ -81,3 +127,4 @@ function read_slideshow_dir(dir,callback)
 // ---- GO!
 // 
     app.listen(port, function () { console.log("Photo-booth service listening on port "+port+"!"); });
+    start_webcam_mode();

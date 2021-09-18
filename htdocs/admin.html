@@ -24,7 +24,7 @@
                 slides=data;
 		for (var slide of slides)
 		{
-		    $("<img src=/images/"+slide+">").appendTo("#thumbs").get(0).imgname=slide;
+		    $("<img src=images/"+slide+">").appendTo("#thumbs").get(0).imgname=slide;
 		}
             }).fail(function () {
 		$("#thumbs").append("Cannot load image list!");
@@ -33,7 +33,7 @@
                 slides=data;
 		for (var slide of slides)
 		{
-		    $("<img src=/inactive-images/"+slide+">").appendTo("#inactive_thumbs").get(0).imgname=slide;
+		    $("<img src=inactive-images/"+slide+">").appendTo("#inactive_thumbs").get(0).imgname=slide;
 		}
             }).fail(function () {
 		$("#inactive_thumbs").append("Cannot load image list!");
