@@ -44,7 +44,7 @@ Open the browser and go to http://localhost:8082/
 Use the joystick/gamepad buttons or a keyboard to active the webcam (viewfinder) and camera.
 SPACE or left button opens/closes viewfinder and ENTER or right button captures a photo.
 
-With Gphoto2 version 2.5.20 a Canon EOS camery can be used as both webcam and photo camera. 
+With Gphoto2 version 2.5.20 a Canon EOS camera can be used as both webcam and photo camera. 
 pb-server.js runs "gphoto2 ---capture-movie ... | ffmpeg ..." for this. 
 Every time the capture button is triggered this services is stopped 
 and restarted afterwards. Chromium might use this simulated or any other webcam, 
