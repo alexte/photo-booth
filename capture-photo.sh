@@ -3,7 +3,7 @@
 filename="snap-"`date +'%F-%H%M%S'`".jpg"
 
 gphoto2 --keep --capture-image-and-download --auto-detect \
-	--filename images/orig/$filename >> /tmp/capture.log 2>&1
+	--filename images/orig/$filename >> ~/capture.log 2>&1
 
 if [ -e images/orig/$filename ]; then
    # echo "------------------ CAPTURE PHOTO OK"

@@ -10,7 +10,7 @@ I made this software for the birthday party of Barbara in February 2017.
 Quick Howto
 -----------
 
-Setup a Linux box with nodejs, gphoto2, Chromium browser and "convert" from ImageMagick, .
+Setup a Linux box with nodejs, gphoto2, ffmpeg, Chromium browser and "convert" from ImageMagick, .
 
 Connect the following gear to the Linux box:
 
@@ -71,7 +71,9 @@ For chromium to find this "webcam" I had to load this module with:
 modprobe v4l2loopback exclusive_caps=1
 ```
 
-You might want to deactivate the screen blanker, the mouse cursor, and the camera auto shutdown.
+If this kernel module is missing on your OS, it might be that you have to install this package: v4l2loopback-utils 
+
+You might want to deactivate the screen blanker, the mouse cursor (unclutter), and the camera auto shutdown.
 
 Security
 ---------

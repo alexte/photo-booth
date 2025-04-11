@@ -24,9 +24,8 @@
 		  box-shadow:2px 2px 20px #000;
 	        }
 
-        #url { position: fixed; bottom: 0; left: 0;width: 100%; font-family: "Ubuntu"; font-size: 30pt; 
-               background-color: lightgrey; background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,0));
-               padding: 0.5em; transform-origin: 0% 0%; width: 100%; color: white;
+        #url { position: fixed; bottom: 0; left: 0; font-family: "Ubuntu"; font-size: 30pt; 
+               padding: 0.5em; color: white; text-shadow: black 0.1vw 0.1vw 1vw;
              }
 
     </style>
@@ -262,6 +261,7 @@
 
 	function show_countdown()
 	{
+	    if (!webcam_active) { toggle_webcam(); return; }
 	    if (countdown_running) return;
 	    countdown_running=true;
 	    setTimeout(capture_photo,1000); // capture photo is slow, starting it before countdown finishes
@@ -288,7 +288,10 @@
 	    }
  	    gps=navigator.getGamepads();
 	    if (gps.length<0) return; 
-	    gp=gps[0];
+	    var gp=gps[0];
+	    for (var i=1;i<gps.length;i++)
+		if (gps[i] && gps[i].id.indexOf("Competition")>=0) gp=gps[i];
+
 	    if (!gp || !gp.connected) return; 
 	    
 	    if (pollgamepad_hold) 
@@ -303,7 +306,7 @@
 		show_info_drawing();
 	    }
 	    if (gp.buttons[0].pressed) { pollgamepad_hold=true; toggle_webcam(); }
-	    if (gp.buttons[1].pressed) { pollgamepad_hold=true; if (webcam_active) show_countdown(); else show_info_drawing(); }
+	    if (gp.buttons[1].pressed) { pollgamepad_hold=true; show_countdown(); }
 	}
 
 
@@ -312,8 +315,10 @@
 	    load_slide_list();
 	    pollgamepad_interval=setInterval(pollgamepad,100);
 	    $("body").keypress(function (e) { 
-		if(e.keyCode==32) toggle_webcam(); 
+		if (e.keyCode==32) toggle_webcam(); 
+		if (e.keyCode==97) toggle_webcam(); 
 		if (e.keyCode==13) show_countdown();
+		if (e.keyCode==98) show_countdown();
 	    });
 	});
     </script>
@@ -326,6 +331,6 @@
    <div id=flash></div>
    <div id=info></div>
    <img id=infodrawing src=info-drawing.svg>
-   <div id=url>Show your URL or Infos here!</div>
+   <div id=url>Hanna &amp; Marco 2025</div>
 </body>
 </html>
