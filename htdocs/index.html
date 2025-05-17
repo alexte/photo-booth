@@ -89,22 +89,33 @@
 	}
 
 	var webcam_active=false;
-	function toggle_webcam(mode)
+	var webcam_opening=false;
+
+	function close_webcam()
 	{
-	    if (!webcam_active && (!mode || mode!="off"))
-	    {
-		requestVideo();
-		$("video").fadeIn(300);
-		webcam_active=true;
-	    }
-	    else 
-	    {
-		$("video").fadeOut(300,function () {
-		    if (webcam_stream && webcam_stream.getTracks) webcam_stream.getTracks()[0].stop();
-		    $("video").attr("src","");
-		    webcam_active=false;
-		});
-	    }
+	    webcam_active=false;
+	    $("video").fadeOut(300,function () {
+		if (webcam_stream && webcam_stream.getTracks) webcam_stream.getTracks()[0].stop();
+		$("video").attr("src","");
+	    });
+	}
+
+	function open_webcam()
+	{
+	    webcam_active=true;
+
+	    webcam_opening=true;
+	    setTimeout(function () { webcam_opening=false; },1000);
+
+	    requestVideo();
+	    $("video").fadeIn(300);
+	}
+
+	function toggle_webcam()
+	{
+	    if (capture_running || webcam_opening) return;
+	    if (!webcam_active) open_webcam();
+	    else  close_webcam();
 	}
 
 
@@ -237,11 +248,12 @@
 
     // ----------------------------- virtual camery mode
 
+	var capture_running=false;
+
 	function show_flash()
 	{
-	    $("#flash").show().fadeIn(200).fadeOut(300, function () {
-		toggle_webcam("off");
-	    });
+	    close_webcam();
+	    $("#flash").show().fadeIn(200).fadeOut(300);
 	}
 
 	function capture_photo() 
@@ -254,16 +266,14 @@
 		    show_info("Neues Photo!",3);
 		}
 	    });
-	    countdown_running=false;
+	    setTimeout(function () { capture_running=false; },7500); // wait for 7.5 seconds for next webcam start, stability
 	}
-
-	var countdown_running=false;
 
 	function show_countdown()
 	{
+	    if (capture_running || webcam_opening) return;
 	    if (!webcam_active) { toggle_webcam(); return; }
-	    if (countdown_running) return;
-	    countdown_running=true;
+	    capture_running=true;
 	    setTimeout(capture_photo,1000); // capture photo is slow, starting it before countdown finishes
 	    $("#countdown").text("3")
 		.fadeIn(500).fadeOut(600,function() { $(this).text("2"); })
@@ -315,10 +325,10 @@
 	    load_slide_list();
 	    pollgamepad_interval=setInterval(pollgamepad,100);
 	    $("body").keypress(function (e) { 
-		if (e.keyCode==32) toggle_webcam(); 
-		if (e.keyCode==97) toggle_webcam(); 
-		if (e.keyCode==13) show_countdown();
-		if (e.keyCode==98) show_countdown();
+		if (e.keyCode==32) toggle_webcam();   // Key SPACE
+		if (e.keyCode==97) toggle_webcam();   // Key "a"
+		if (e.keyCode==13) show_countdown();  // Key ENTER
+		if (e.keyCode==98) show_countdown();  // KEY "b"
 	    });
 	});
     </script>
@@ -331,6 +341,6 @@
    <div id=flash></div>
    <div id=info></div>
    <img id=infodrawing src=info-drawing.svg>
-   <div id=url>Hanna &amp; Marco 2025</div>
+   <div id=url>Show your URL or Infos here!</div>
 </body>
 </html>

@@ -77,9 +77,9 @@ function stop_webcam_mode()
   	        if (error) res.send({error: "Capture Script Fehler"});
   	        else if (stdout.trim()=="ERROR") res.send({error: "Kamera Fehler"});
   	        else res.send({image:stdout.trim()});
-		start_webcam_mode();
+		setTimeout(function () { start_webcam_mode(); },800);
 	    });
-	},100);
+	},200);
     });
 
     app.get("/images.json",function(req,res) {
